@@ -137,7 +137,7 @@
 
     <div class="section">
         <h2>New Entry</h2>
-        <form id="myForm" onsubmit="submitForm(event)">
+        <form id="myForm" action="" method="POST" target="hidden-frame" onsubmit="return submitForm(event)">
             <div class="form-group">
                 <label for="date">Date:</label>
                 <input type="date" id="date" name="date" required>
@@ -169,6 +169,8 @@
             <button type="submit">Submit</button>
         </form>
     </div>
+
+    <iframe name="hidden-frame" style="display:none;"></iframe>
 
     <script>
         // Function to format date as YYYY-MM-DD
@@ -269,18 +271,17 @@
             form.submit();
         }
 
-        // Simple form submission
         function submitForm(e) {
-            e.preventDefault();
             const form = document.getElementById('myForm');
             form.action = CONFIG.SCRIPT_URL;
-            form.method = 'POST';
-            form.submit();
             
+            // Show success message after brief delay
             setTimeout(() => {
                 alert('Entry submitted successfully');
                 window.location.reload();
             }, 1000);
+            
+            return true; // Allow form submission
         }
 
         // Set today's date when page loads

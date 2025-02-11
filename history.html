@@ -75,11 +75,14 @@
             <a href="index.html" class="nav-link">Back to Form</a>
         </div>
         
+        <form id="getDataForm" action="" method="GET" target="hidden-frame">
+            <input type="hidden" name="action" value="getAll">
+        </form>
+
         <div class="filter-section">
             <label for="dateFilter">Filter by Date:</label>
             <select id="dateFilter" onchange="filterEntries()">
                 <option value="all">All Dates</option>
-                <!-- Date options will be populated by JavaScript -->
             </select>
         </div>
 
@@ -100,6 +103,8 @@
             </tbody>
         </table>
     </div>
+
+    <iframe name="hidden-frame" style="display:none;"></iframe>
 
     <script>
         let allEntries = []; // Store all entries globally
@@ -210,7 +215,11 @@
             }
         }
 
-        window.onload = loadAllEntries;
+        window.onload = function() {
+            const form = document.getElementById('getDataForm');
+            form.action = CONFIG.SCRIPT_URL;
+            form.submit();
+        };
     </script>
 </body>
 </html> 
