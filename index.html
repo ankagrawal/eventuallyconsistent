@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily Progress Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h2>Daily Progress Tracker</h2>
+    <form id="myForm" onsubmit="submitForm(event)">
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+        <div class="form-group">
+            <label for="start-time">Start Time:</label>
+            <input type="time" id="start-time" name="start-time" required>
+        </div>
+        <div class="form-group">
+            <label for="end-time">End Time:</label>
+            <input type="time" id="end-time" name="end-time" required>
+        </div>
+        <div class="form-group">
+            <label for="todo">To Do:</label>
+            <textarea id="todo" name="todo" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="done">Done:</label>
+            <textarea id="done" name="done" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="forfeit">Forfeit:</label>
+            <textarea id="forfeit" name="forfeit" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="freedom">Freedom:</label>
+            <textarea id="freedom" name="freedom" rows="3"></textarea>
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        // Function to format date as YYYY-MM-DD
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Function to populate today's date
+        function setTodayDate() {
+            const today = new Date();
+            document.getElementById('date').value = formatDate(today);
+        }
+
+        // Function to load the last entry
+        async function loadLastEntry() {
+            try {
+                const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+                const response = await fetch(scriptURL);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    document.getElementById('date').value = data.data.date;
+                    document.getElementById('start-time').value = data.data.startTime;
+                    document.getElementById('end-time').value = data.data.endTime;
+                    document.getElementById('todo').value = data.data.todo;
+                    document.getElementById('done').value = data.data.done;
+                    document.getElementById('forfeit').value = data.data.forfeit;
+                    document.getElementById('freedom').value = data.data.freedom;
+                }
+            } catch (error) {
+                console.error('Error loading last entry:', error);
+                // If there's an error loading the last entry, at least set today's date
+                setTodayDate();
+            }
+        }
+
+        // Load last entry when page loads
+        window.onload = loadLastEntry;
+
+        async function submitForm(e) {
+            e.preventDefault();
+            
+            const form = document.getElementById('myForm');
+            const formData = new FormData(form);
+            
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbyVVx4Ie6WPy4nTWpMtyMTHdfIFn6pyOYsG9H6IJei50FzLRvE4eBJQ4rF4_4IRKyA_/exec';
+
+            try {
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert('Success! Entry submitted successfully');
+                    // After successful submission, reload the page to show the new entry
+                    window.location.reload();
+                } else {
+                    throw new Error('Submission failed');
+                }
+            } catch (error) {
+                console.error('Error!', error.message);
+                alert('Error! Something went wrong');
+            }
+        }
+    </script>
+</body>
+</html>
