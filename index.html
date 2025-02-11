@@ -183,19 +183,32 @@
 
         // Function to populate the view mode with last entry
         function populateViewMode(data) {
+            console.log('Raw data received:', data);
+
+            // Format date and time values
+            const formattedDate = data.date ? data.date : '';
+            const formattedStartTime = data.startTime ? data.startTime.toString().padStart(5, '0') : '';
+            const formattedEndTime = data.endTime ? data.endTime.toString().padStart(5, '0') : '';
+
+            console.log('Formatted values:', {
+                date: formattedDate,
+                startTime: formattedStartTime,
+                endTime: formattedEndTime
+            });
+
             // Populate the read-only view
-            document.getElementById('view-date').textContent = data.date || '';
-            document.getElementById('view-start-time').textContent = data.startTime || '';
-            document.getElementById('view-end-time').textContent = data.endTime || '';
+            document.getElementById('view-date').textContent = formattedDate;
+            document.getElementById('view-start-time').textContent = formattedStartTime;
+            document.getElementById('view-end-time').textContent = formattedEndTime;
             document.getElementById('view-todo').textContent = data.todo || '';
             document.getElementById('view-done').textContent = data.done || '';
             document.getElementById('view-forfeit').textContent = data.forfeit || '';
             document.getElementById('view-freedom').textContent = data.freedom || '';
 
             // Populate the edit form
-            document.getElementById('edit-date').value = data.date || '';
-            document.getElementById('edit-start-time').value = data.startTime || '';
-            document.getElementById('edit-end-time').value = data.endTime || '';
+            document.getElementById('edit-date').value = formattedDate;
+            document.getElementById('edit-start-time').value = formattedStartTime;
+            document.getElementById('edit-end-time').value = formattedEndTime;
             document.getElementById('edit-todo').value = data.todo || '';
             document.getElementById('edit-done').value = data.done || '';
             document.getElementById('edit-forfeit').value = data.forfeit || '';
@@ -217,7 +230,7 @@
         // Modified loadLastEntry function
         async function loadLastEntry() {
             try {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbwnbkBHr7WqWI9JdqLb80dUCLKCD9HbQfoh26vFSpap8cd4uHalY7yuCigIiHtqqw5c/exec';
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbzcwRjWQQ_9cdBHKxC7WKDdkX5fx7fWmQ8-pLXu9BqQVMQ2YZNW1lTiIY45k0NFweLd/exec';
                 const response = await fetch(scriptURL);
                 const jsonData = await response.json();
 
@@ -247,7 +260,7 @@
             const formData = new FormData(form);
             formData.append('isEdit', 'true');  // Flag to indicate this is an edit
             
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbwnbkBHr7WqWI9JdqLb80dUCLKCD9HbQfoh26vFSpap8cd4uHalY7yuCigIiHtqqw5c/exec';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzcwRjWQQ_9cdBHKxC7WKDdkX5fx7fWmQ8-pLXu9BqQVMQ2YZNW1lTiIY45k0NFweLd/exec';
 
             try {
                 const response = await fetch(scriptURL, {
@@ -274,7 +287,7 @@
             const form = document.getElementById('myForm');
             const formData = new FormData(form);
             
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbwnbkBHr7WqWI9JdqLb80dUCLKCD9HbQfoh26vFSpap8cd4uHalY7yuCigIiHtqqw5c/exec';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzcwRjWQQ_9cdBHKxC7WKDdkX5fx7fWmQ8-pLXu9BqQVMQ2YZNW1lTiIY45k0NFweLd/exec';
 
             try {
                 const response = await fetch(scriptURL, {
