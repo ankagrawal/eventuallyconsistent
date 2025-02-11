@@ -63,6 +63,18 @@
         .edit-button:hover {
             background-color: #1976D2;
         }
+        .nav-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .nav-link:hover {
+            background-color: #1976D2;
+        }
     </style>
 </head>
 <body>
@@ -136,6 +148,7 @@
 
     <div class="section">
         <h2>New Entry</h2>
+        <a href="history.html" class="nav-link">View All Entries</a>
         <form id="myForm" onsubmit="submitForm(event)">
             <div class="form-group">
                 <label for="date">Date:</label>
