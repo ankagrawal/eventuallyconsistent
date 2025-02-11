@@ -197,34 +197,17 @@
             actionInput.value = 'getAll';
             form.appendChild(actionInput);
             
-            const iframe = document.createElement('iframe');
-            iframe.name = 'response-frame';
-            iframe.style.display = 'none';
-            
-            form.target = 'response-frame';
-            
-            document.body.appendChild(iframe);
             document.body.appendChild(form);
-            
             form.submit();
-            
-            iframe.onload = function() {
-                try {
-                    const response = iframe.contentWindow.document.body.innerText;
-                    const data = JSON.parse(response);
-                    if (data.status === 'success' && data.data) {
-                        allEntries = data.data;
-                        populateDateFilter(allEntries);
-                        displayEntries(allEntries);
-                    }
-                } catch (error) {
-                    console.error('Error loading entries:', error);
-                    displayEntries([]);
-                }
-                // Clean up
-                document.body.removeChild(form);
-                document.body.removeChild(iframe);
-            };
+        }
+
+        // Add this function to handle the data
+        function handleAllEntries(entries) {
+            if (entries) {
+                allEntries = entries;
+                populateDateFilter(allEntries);
+                displayEntries(allEntries);
+            }
         }
 
         window.onload = loadAllEntries;

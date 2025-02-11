@@ -258,32 +258,15 @@
             form.action = CONFIG.SCRIPT_URL;
             form.style.display = 'none';
             
-            const iframe = document.createElement('iframe');
-            iframe.name = 'response-frame';
-            iframe.style.display = 'none';
+            // Add a parameter to indicate this is not an edit
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'type';
+            input.value = 'read';
+            form.appendChild(input);
             
-            form.target = 'response-frame';
-            
-            document.body.appendChild(iframe);
             document.body.appendChild(form);
-            
             form.submit();
-            
-            iframe.onload = function() {
-                try {
-                    const response = iframe.contentWindow.document.body.innerText;
-                    const data = JSON.parse(response);
-                    if (data.status === 'success' && data.data) {
-                        populateViewMode(data.data);
-                    }
-                } catch (error) {
-                    console.error('Error loading last entry:', error);
-                }
-                setTodayDate();
-                // Clean up
-                document.body.removeChild(form);
-                document.body.removeChild(iframe);
-            };
         }
 
         // Simple form submission
@@ -292,13 +275,6 @@
             const form = document.getElementById('myForm');
             form.action = CONFIG.SCRIPT_URL;
             form.method = 'POST';
-            
-            const iframe = document.createElement('iframe');
-            iframe.name = 'submit-frame';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            form.target = 'submit-frame';
             form.submit();
             
             setTimeout(() => {
@@ -307,7 +283,11 @@
             }, 1000);
         }
 
-        window.onload = loadLastEntry;
+        // Set today's date when page loads
+        window.onload = function() {
+            setTodayDate();
+            loadLastEntry();
+        };
 
         // Function to submit edited entry
         async function submitEdit(e) {
