@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Daily Progress Tracker</title>
+    <script src="config.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -250,18 +251,44 @@
             document.getElementById('editForm').style.display = 'none';
         }
 
-        // Modified loadLastEntry function
+        // Add this helper function for JSONP requests
+        function jsonp(url) {
+            return new Promise((resolve, reject) => {
+                // Create a unique callback name
+                const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+                
+                // Create script element
+                const script = document.createElement('script');
+                script.src = `${url}${url.includes('?') ? '&' : '?'}callback=${callbackName}`;
+                
+                // Define the callback function
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(data);
+                };
+                
+                // Handle errors
+                script.onerror = () => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    reject(new Error('JSONP request failed'));
+                };
+                
+                // Add script to document
+                document.body.appendChild(script);
+            });
+        }
+
+        // Update loadLastEntry to use JSONP
         async function loadLastEntry() {
             try {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbw6iAmk5agjF_-ROxr44yqsbMbXgfdeCVOVFqv-ZBpdtjEEWbOVSHKadcbeHlJ8wY00/exec';
-                const response = await fetch(scriptURL);
-                const jsonData = await response.json();
+                const data = await jsonp(CONFIG.SCRIPT_URL);
+                console.log('Received data:', data);
 
-                console.log('Received data:', jsonData); // For debugging
-
-                if (jsonData.status === 'success' && jsonData.data) {
-                    populateViewMode(jsonData.data);
-                    setTodayDate(); // Set today's date in the new entry form
+                if (data.status === 'success' && data.data) {
+                    populateViewMode(data.data);
+                    setTodayDate();
                 } else {
                     console.log('No data received or empty status');
                     setTodayDate();
@@ -304,16 +331,15 @@
             }
         }
 
+        // Update submitForm to use form submission instead of fetch
         async function submitForm(e) {
             e.preventDefault();
             
             const form = document.getElementById('myForm');
             const formData = new FormData(form);
             
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbw6iAmk5agjF_-ROxr44yqsbMbXgfdeCVOVFqv-ZBpdtjEEWbOVSHKadcbeHlJ8wY00/exec';
-
             try {
-                const response = await fetch(scriptURL, {
+                const response = await fetch(CONFIG.SCRIPT_URL, {
                     method: 'POST',
                     body: formData
                 });
@@ -321,10 +347,9 @@
                 const data = await response.json();
                 if (data.status === 'success') {
                     alert('Success! Entry submitted successfully');
-                    // After successful submission, reload the page to show the new entry
                     window.location.reload();
                 } else {
-                    throw new Error('Submission failed');
+                    alert('Error! Something went wrong');
                 }
             } catch (error) {
                 console.error('Error!', error.message);

@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Progress History</title>
+    <script src="config.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -182,22 +183,45 @@
             }
         }
 
+        // Add the same JSONP helper function
+        function jsonp(url) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+                
+                const script = document.createElement('script');
+                script.src = `${url}${url.includes('?') ? '&' : '?'}callback=${callbackName}`;
+                
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(data);
+                };
+                
+                script.onerror = () => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    reject(new Error('JSONP request failed'));
+                };
+                
+                document.body.appendChild(script);
+            });
+        }
+
+        // Update loadAllEntries to use JSONP
         async function loadAllEntries() {
             try {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbw6iAmk5agjF_-ROxr44yqsbMbXgfdeCVOVFqv-ZBpdtjEEWbOVSHKadcbeHlJ8wY00/exec';
-                const response = await fetch(scriptURL + '?action=getAll');
-                const jsonData = await response.json();
+                const response = await fetch(CONFIG.SCRIPT_URL + '?action=getAll');
+                const data = await response.json();
+                console.log('Received data:', data);
 
-                console.log('Received data:', jsonData);
-
-                if (jsonData.status === 'success' && jsonData.data) {
-                    allEntries = jsonData.data; // Store all entries
-                    populateDateFilter(allEntries); // Populate date filter dropdown
-                    displayEntries(allEntries); // Display all entries initially
+                if (data.status === 'success' && data.data) {
+                    allEntries = data.data;
+                    populateDateFilter(allEntries);
+                    displayEntries(allEntries);
                 }
             } catch (error) {
                 console.error('Error loading entries:', error);
-                displayEntries([]); // Show empty state
+                displayEntries([]);
             }
         }
 
