@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Progress History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        .nav-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .nav-link:hover {
+            background-color: #1976D2;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .filter-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-left: 10px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Progress History</h1>
+            <a href="index.html" class="nav-link">Back to Form</a>
+        </div>
+        
+        <div class="filter-section">
+            <label for="dateFilter">Filter by Date:</label>
+            <select id="dateFilter" onchange="filterEntries()">
+                <option value="all">All Dates</option>
+                <!-- Date options will be populated by JavaScript -->
+            </select>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>To Do</th>
+                    <th>Done</th>
+                    <th>Forfeit</th>
+                    <th>Freedom</th>
+                </tr>
+            </thead>
+            <tbody id="entriesTable">
+                <!-- Table rows will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let allEntries = []; // Store all entries globally
+
+        function populateDateFilter(entries) {
+            const dateFilter = document.getElementById('dateFilter');
+            const dates = [...new Set(entries.map(entry => entry.date))]; // Get unique dates
+            
+            // Sort dates in descending order
+            dates.sort((a, b) => new Date(b) - new Date(a));
+            
+            // Clear existing options except "All Dates"
+            dateFilter.innerHTML = '<option value="all">All Dates</option>';
+            
+            // Add date options
+            dates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                dateFilter.appendChild(option);
+            });
+        }
+
+        function displayEntries(entries) {
+            const tableBody = document.getElementById('entriesTable');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            if (entries.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-data">No entries found for the selected date.</td>
+                    </tr>`;
+                return;
+            }
+
+            entries.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date || ''}</td>
+                    <td>${entry.startTime || ''}</td>
+                    <td>${entry.endTime || ''}</td>
+                    <td>${entry.todo || ''}</td>
+                    <td>${entry.done || ''}</td>
+                    <td>${entry.forfeit || ''}</td>
+                    <td>${entry.freedom || ''}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function filterEntries() {
+            const selectedDate = document.getElementById('dateFilter').value;
+            
+            if (selectedDate === 'all') {
+                displayEntries(allEntries);
+            } else {
+                const filteredEntries = allEntries.filter(entry => entry.date === selectedDate);
+                displayEntries(filteredEntries);
+            }
+        }
+
+        async function loadAllEntries() {
+            try {
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbzlJr4jeC6nCr1hyDwPLLRZ3a9ml1Vw3fgTerjUVixh8HDP5B6BKTYg3MwZUMyjvhS4/exec';
+                const response = await fetch(scriptURL + '?action=getAll');
+                const jsonData = await response.json();
+
+                console.log('Received data:', jsonData);
+
+                if (jsonData.status === 'success' && jsonData.data) {
+                    allEntries = jsonData.data; // Store all entries
+                    populateDateFilter(allEntries); // Populate date filter dropdown
+                    displayEntries(allEntries); // Display all entries initially
+                }
+            } catch (error) {
+                console.error('Error loading entries:', error);
+                displayEntries([]); // Show empty state
+            }
+        }
+
+        // Load entries when the page loads
+        window.onload = loadAllEntries;
+    </script>
+</body>
+</html> 
