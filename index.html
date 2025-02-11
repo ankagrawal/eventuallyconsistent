@@ -183,22 +183,23 @@
 
         // Function to populate the view mode with last entry
         function populateViewMode(data) {
-            document.getElementById('view-date').textContent = data.date;
-            document.getElementById('view-start-time').textContent = data.startTime;
-            document.getElementById('view-end-time').textContent = data.endTime;
-            document.getElementById('view-todo').textContent = data.todo;
-            document.getElementById('view-done').textContent = data.done;
-            document.getElementById('view-forfeit').textContent = data.forfeit;
-            document.getElementById('view-freedom').textContent = data.freedom;
+            // Populate the read-only view
+            document.getElementById('view-date').textContent = data.date || '';
+            document.getElementById('view-start-time').textContent = data.startTime || '';
+            document.getElementById('view-end-time').textContent = data.endTime || '';
+            document.getElementById('view-todo').textContent = data.todo || '';
+            document.getElementById('view-done').textContent = data.done || '';
+            document.getElementById('view-forfeit').textContent = data.forfeit || '';
+            document.getElementById('view-freedom').textContent = data.freedom || '';
 
-            // Also populate the edit form
-            document.getElementById('edit-date').value = data.date;
-            document.getElementById('edit-start-time').value = data.startTime;
-            document.getElementById('edit-end-time').value = data.endTime;
-            document.getElementById('edit-todo').value = data.todo;
-            document.getElementById('edit-done').value = data.done;
-            document.getElementById('edit-forfeit').value = data.forfeit;
-            document.getElementById('edit-freedom').value = data.freedom;
+            // Populate the edit form
+            document.getElementById('edit-date').value = data.date || '';
+            document.getElementById('edit-start-time').value = data.startTime || '';
+            document.getElementById('edit-end-time').value = data.endTime || '';
+            document.getElementById('edit-todo').value = data.todo || '';
+            document.getElementById('edit-done').value = data.done || '';
+            document.getElementById('edit-forfeit').value = data.forfeit || '';
+            document.getElementById('edit-freedom').value = data.freedom || '';
         }
 
         // Function to enable edit mode
@@ -218,12 +219,15 @@
             try {
                 const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
                 const response = await fetch(scriptURL);
-                const data = await response.json();
+                const jsonData = await response.json();
 
-                if (data.status === 'success') {
-                    // Populate the view mode and edit form
-                    populateViewMode(data.data);
-                    // Set today's date in the new entry form
+                console.log('Received data:', jsonData); // For debugging
+
+                if (jsonData.status === 'success' && jsonData.data) {
+                    populateViewMode(jsonData.data);
+                    setTodayDate(); // Set today's date in the new entry form
+                } else {
+                    console.log('No data received or empty status');
                     setTodayDate();
                 }
             } catch (error) {
@@ -231,6 +235,9 @@
                 setTodayDate();
             }
         }
+
+        // Call loadLastEntry when the page loads
+        window.onload = loadLastEntry;
 
         // Function to submit edited entry
         async function submitEdit(e) {
@@ -267,7 +274,7 @@
             const form = document.getElementById('myForm');
             const formData = new FormData(form);
             
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxU2Is1XP7twuMZtWgT4Jz01kG_4RnW7DRIDbfO5Qlpmwo5SWMFS9d063WNW4sjIQ1K/exec';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxVhsnGzQamwsM4FakR0dX2SWj31jluLUwxPuDCuPCs1fYC-CTXi6tM6RNdpAs5wD9M/exec';
 
             try {
                 const response = await fetch(scriptURL, {
