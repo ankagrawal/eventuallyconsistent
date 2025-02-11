@@ -184,12 +184,24 @@
         // Function to format time (remove any date part)
         function formatTimeValue(timeStr) {
             if (!timeStr) return '';
-            // If the time contains a date part (e.g., "2024-03-21 14:30:00"), extract only the time
-            if (timeStr.includes(' ')) {
-                timeStr = timeStr.split(' ')[1];
+            // If it's already in HH:MM format, return as is
+            if (typeof timeStr === 'string' && timeStr.match(/^\d{2}:\d{2}$/)) return timeStr;
+            
+            // For any other format, try to extract HH:MM
+            try {
+                if (typeof timeStr === 'string') {
+                    // Extract HH:MM if it exists in the string
+                    const match = timeStr.match(/(\d{2}):(\d{2})/);
+                    if (match) {
+                        return `${match[1]}:${match[2]}`;
+                    }
+                }
+                // If all else fails, return empty string
+                return '';
+            } catch (e) {
+                console.error('Error formatting time:', e);
+                return '';
             }
-            // Take only the HH:MM part if it's in HH:MM:SS format
-            return timeStr.split(':').slice(0, 2).join(':');
         }
 
         // Function to populate the view mode with last entry
@@ -241,7 +253,7 @@
         // Modified loadLastEntry function
         async function loadLastEntry() {
             try {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbzlJr4jeC6nCr1hyDwPLLRZ3a9ml1Vw3fgTerjUVixh8HDP5B6BKTYg3MwZUMyjvhS4/exec';
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbw6iAmk5agjF_-ROxr44yqsbMbXgfdeCVOVFqv-ZBpdtjEEWbOVSHKadcbeHlJ8wY00/exec';
                 const response = await fetch(scriptURL);
                 const jsonData = await response.json();
 
@@ -271,7 +283,7 @@
             const formData = new FormData(form);
             formData.append('isEdit', 'true');  // Flag to indicate this is an edit
             
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzlJr4jeC6nCr1hyDwPLLRZ3a9ml1Vw3fgTerjUVixh8HDP5B6BKTYg3MwZUMyjvhS4/exec';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbw6iAmk5agjF_-ROxr44yqsbMbXgfdeCVOVFqv-ZBpdtjEEWbOVSHKadcbeHlJ8wY00/exec';
 
             try {
                 const response = await fetch(scriptURL, {
@@ -298,7 +310,7 @@
             const form = document.getElementById('myForm');
             const formData = new FormData(form);
             
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzlJr4jeC6nCr1hyDwPLLRZ3a9ml1Vw3fgTerjUVixh8HDP5B6BKTYg3MwZUMyjvhS4/exec';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbw6iAmk5agjF_-ROxr44yqsbMbXgfdeCVOVFqv-ZBpdtjEEWbOVSHKadcbeHlJ8wY00/exec';
 
             try {
                 const response = await fetch(scriptURL, {
