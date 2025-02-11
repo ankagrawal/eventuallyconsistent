@@ -125,12 +125,21 @@
         // Function to format time (remove any date part)
         function formatTimeValue(timeStr) {
             if (!timeStr) return '';
-            // If the time contains a date part (e.g., "2024-03-21 14:30:00"), extract only the time
-            if (timeStr.includes(' ')) {
-                timeStr = timeStr.split(' ')[1];
+            
+            try {
+                // Convert the string to a Date object
+                const date = new Date(timeStr);
+                
+                // Extract hours and minutes, pad with leading zeros if needed
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                
+                // Return in HH:MM format
+                return `${hours}:${minutes}`;
+            } catch (error) {
+                console.error('Error formatting time:', error);
+                return '';
             }
-            // Take only the HH:MM part if it's in HH:MM:SS format
-            return timeStr.split(':').slice(0, 2).join(':');
         }
 
         function displayEntries(entries) {
