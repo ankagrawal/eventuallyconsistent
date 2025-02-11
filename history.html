@@ -210,8 +210,7 @@
         // Update loadAllEntries to use JSONP
         async function loadAllEntries() {
             try {
-                const response = await fetch(CONFIG.SCRIPT_URL + '?action=getAll');
-                const data = await response.json();
+                const data = await jsonp(CONFIG.SCRIPT_URL + '?action=getAll');
                 console.log('Received data:', data);
 
                 if (data.status === 'success' && data.data) {

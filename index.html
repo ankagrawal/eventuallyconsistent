@@ -280,14 +280,22 @@
             });
         }
 
-        // Update loadLastEntry to use JSONP
+        // Update loadLastEntry function
         async function loadLastEntry() {
             try {
-                const data = await jsonp(CONFIG.SCRIPT_URL);
-                console.log('Received data:', data);
+                const response = await fetch(CONFIG.SCRIPT_URL, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const jsonData = await response.json();
+                
+                console.log('Received data:', jsonData);
 
-                if (data.status === 'success' && data.data) {
-                    populateViewMode(data.data);
+                if (jsonData.status === 'success' && jsonData.data) {
+                    populateViewMode(jsonData.data);
                     setTodayDate();
                 } else {
                     console.log('No data received or empty status');
@@ -331,7 +339,7 @@
             }
         }
 
-        // Update submitForm to use form submission instead of fetch
+        // Update submitForm function
         async function submitForm(e) {
             e.preventDefault();
             
@@ -341,6 +349,7 @@
             try {
                 const response = await fetch(CONFIG.SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'cors',
                     body: formData
                 });
                 
@@ -349,7 +358,7 @@
                     alert('Success! Entry submitted successfully');
                     window.location.reload();
                 } else {
-                    alert('Error! Something went wrong');
+                    throw new Error('Submission failed');
                 }
             } catch (error) {
                 console.error('Error!', error.message);
