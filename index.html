@@ -251,51 +251,38 @@
             document.getElementById('editForm').style.display = 'none';
         }
 
-        // Add this helper function for JSONP requests
-        function jsonp(url) {
+        // Helper function for JSONP requests
+        function loadScript(url) {
             return new Promise((resolve, reject) => {
-                // Create a unique callback name
-                const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-                
-                // Create script element
                 const script = document.createElement('script');
-                script.src = `${url}${url.includes('?') ? '&' : '?'}callback=${callbackName}`;
+                script.src = url;
                 
-                // Define the callback function
-                window[callbackName] = (data) => {
-                    delete window[callbackName];
+                // Define success callback
+                window.handleResponse = function(data) {
                     document.body.removeChild(script);
                     resolve(data);
                 };
                 
                 // Handle errors
                 script.onerror = () => {
-                    delete window[callbackName];
                     document.body.removeChild(script);
-                    reject(new Error('JSONP request failed'));
+                    reject(new Error('Script load failed'));
                 };
                 
-                // Add script to document
                 document.body.appendChild(script);
             });
         }
 
-        // Update loadLastEntry function
+        // Update loadLastEntry to use JSONP
         async function loadLastEntry() {
             try {
-                const response = await fetch(CONFIG.SCRIPT_URL, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                const jsonData = await response.json();
+                const url = `${CONFIG.SCRIPT_URL}?callback=handleResponse`;
+                const data = await loadScript(url);
                 
-                console.log('Received data:', jsonData);
+                console.log('Received data:', data);
 
-                if (jsonData.status === 'success' && jsonData.data) {
-                    populateViewMode(jsonData.data);
+                if (data.status === 'success' && data.data) {
+                    populateViewMode(data.data);
                     setTodayDate();
                 } else {
                     console.log('No data received or empty status');
@@ -339,31 +326,31 @@
             }
         }
 
-        // Update submitForm function
-        async function submitForm(e) {
+        // Update submitForm to use form target
+        function submitForm(e) {
             e.preventDefault();
             
             const form = document.getElementById('myForm');
-            const formData = new FormData(form);
             
-            try {
-                const response = await fetch(CONFIG.SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                if (data.status === 'success') {
-                    alert('Success! Entry submitted successfully');
-                    window.location.reload();
-                } else {
-                    throw new Error('Submission failed');
-                }
-            } catch (error) {
-                console.error('Error!', error.message);
-                alert('Error! Something went wrong');
-            }
+            // Create hidden iframe
+            const iframe = document.createElement('iframe');
+            iframe.name = 'hidden-iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            // Configure form
+            form.target = 'hidden-iframe';
+            form.action = CONFIG.SCRIPT_URL;
+            form.method = 'POST';
+            
+            // Submit form
+            form.submit();
+            
+            // Show success message and reload after delay
+            setTimeout(() => {
+                alert('Entry submitted successfully');
+                window.location.reload();
+            }, 2000);
         }
     </script>
 </body>
