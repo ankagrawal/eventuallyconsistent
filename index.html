@@ -251,50 +251,62 @@
             document.getElementById('editForm').style.display = 'none';
         }
 
-        // Helper function for JSONP requests
-        function loadScript(url) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = url;
-                
-                // Define success callback
-                window.handleResponse = function(data) {
-                    document.body.removeChild(script);
-                    resolve(data);
-                };
-                
-                // Handle errors
-                script.onerror = () => {
-                    document.body.removeChild(script);
-                    reject(new Error('Script load failed'));
-                };
-                
-                document.body.appendChild(script);
-            });
-        }
-
-        // Update loadLastEntry to use JSONP
-        async function loadLastEntry() {
-            try {
-                const url = `${CONFIG.SCRIPT_URL}?callback=handleResponse`;
-                const data = await loadScript(url);
-                
-                console.log('Received data:', data);
-
-                if (data.status === 'success' && data.data) {
-                    populateViewMode(data.data);
-                    setTodayDate();
-                } else {
-                    console.log('No data received or empty status');
-                    setTodayDate();
+        // Function to load last entry via form submission
+        function loadLastEntry() {
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = CONFIG.SCRIPT_URL;
+            form.style.display = 'none';
+            
+            const iframe = document.createElement('iframe');
+            iframe.name = 'response-frame';
+            iframe.style.display = 'none';
+            
+            form.target = 'response-frame';
+            
+            document.body.appendChild(iframe);
+            document.body.appendChild(form);
+            
+            form.submit();
+            
+            iframe.onload = function() {
+                try {
+                    const response = iframe.contentWindow.document.body.innerText;
+                    const data = JSON.parse(response);
+                    if (data.status === 'success' && data.data) {
+                        populateViewMode(data.data);
+                    }
+                } catch (error) {
+                    console.error('Error loading last entry:', error);
                 }
-            } catch (error) {
-                console.error('Error loading last entry:', error);
                 setTodayDate();
-            }
+                // Clean up
+                document.body.removeChild(form);
+                document.body.removeChild(iframe);
+            };
         }
 
-        // Call loadLastEntry when the page loads
+        // Simple form submission
+        function submitForm(e) {
+            e.preventDefault();
+            const form = document.getElementById('myForm');
+            form.action = CONFIG.SCRIPT_URL;
+            form.method = 'POST';
+            
+            const iframe = document.createElement('iframe');
+            iframe.name = 'submit-frame';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            form.target = 'submit-frame';
+            form.submit();
+            
+            setTimeout(() => {
+                alert('Entry submitted successfully');
+                window.location.reload();
+            }, 1000);
+        }
+
         window.onload = loadLastEntry;
 
         // Function to submit edited entry
@@ -324,33 +336,6 @@
                 console.error('Error!', error.message);
                 alert('Error! Something went wrong');
             }
-        }
-
-        // Update submitForm to use form target
-        function submitForm(e) {
-            e.preventDefault();
-            
-            const form = document.getElementById('myForm');
-            
-            // Create hidden iframe
-            const iframe = document.createElement('iframe');
-            iframe.name = 'hidden-iframe';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            // Configure form
-            form.target = 'hidden-iframe';
-            form.action = CONFIG.SCRIPT_URL;
-            form.method = 'POST';
-            
-            // Submit form
-            form.submit();
-            
-            // Show success message and reload after delay
-            setTimeout(() => {
-                alert('Entry submitted successfully');
-                window.location.reload();
-            }, 2000);
         }
     </script>
 </body>
