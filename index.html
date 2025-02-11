@@ -181,14 +181,25 @@
             document.getElementById('date').value = formatDate(today);
         }
 
+        // Function to format time (remove any date part)
+        function formatTimeValue(timeStr) {
+            if (!timeStr) return '';
+            // If the time contains a date part (e.g., "2024-03-21 14:30:00"), extract only the time
+            if (timeStr.includes(' ')) {
+                timeStr = timeStr.split(' ')[1];
+            }
+            // Take only the HH:MM part if it's in HH:MM:SS format
+            return timeStr.split(':').slice(0, 2).join(':');
+        }
+
         // Function to populate the view mode with last entry
         function populateViewMode(data) {
             console.log('Raw data received:', data);
 
             // Format date and time values
             const formattedDate = data.date ? data.date : '';
-            const formattedStartTime = data.startTime ? data.startTime.toString().padStart(5, '0') : '';
-            const formattedEndTime = data.endTime ? data.endTime.toString().padStart(5, '0') : '';
+            const formattedStartTime = formatTimeValue(data.startTime);
+            const formattedEndTime = formatTimeValue(data.endTime);
 
             console.log('Formatted values:', {
                 date: formattedDate,
