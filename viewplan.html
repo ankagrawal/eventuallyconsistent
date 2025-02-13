@@ -111,6 +111,8 @@
         </table>
     </div>
 
+    <iframe name="hidden-frame" style="display:none;"></iframe>
+
     <script>
         function formatTime(timeStr) {
             if (!timeStr) return '';
@@ -177,43 +179,67 @@
             });
         }
 
-        async function loadAllDates() {
-            try {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbx0eo1dUH8q0YlPmFxueENXBpyXgFRkJv5q2ojAn2IOrsHzcBa6eN81IA7Z--p8no67/exec';
-                const response = await fetch(`${scriptURL}?action=getAllPlanDays`);
-                const jsonData = await response.json();
-
-                if (jsonData.status === 'success' && jsonData.data) {
-                    populateDateFilter(jsonData.data);
-                }
-            } catch (error) {
-                console.error('Error loading dates:', error);
-                alert('Error loading dates. Please try again.');
-            }
+        function loadAllDates() {
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = 'https://script.google.com/macros/s/AKfycbz_HQrPn5F9Uh9Vqjx-BwUZv9UKhTnTMUN5CiTZTxI6_hS8aqYeZS9sd7FCHsiH4xHy/exec';
+            form.target = 'hidden-frame';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'getAllPlanDays';
+            form.appendChild(actionInput);
+            
+            document.body.appendChild(form);
+            form.submit();
         }
 
-        async function loadDayPlan() {
+        function loadDayPlan() {
             const selectedDate = document.getElementById('dateFilter').value;
             if (!selectedDate) {
                 displayDayPlan([]);
                 return;
             }
 
-            try {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbx0eo1dUH8q0YlPmFxueENXBpyXgFRkJv5q2ojAn2IOrsHzcBa6eN81IA7Z--p8no67/exec';
-                const response = await fetch(`${scriptURL}?action=getPlanDay&date=${selectedDate}`);
-                const jsonData = await response.json();
-
-                if (jsonData.status === 'success') {
-                    displayDayPlan(jsonData.data);
-                } else {
-                    throw new Error('Failed to load day plan');
-                }
-            } catch (error) {
-                console.error('Error loading day plan:', error);
-                alert('Error loading day plan. Please try again.');
-            }
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = 'https://script.google.com/macros/s/AKfycbz_HQrPn5F9Uh9Vqjx-BwUZv9UKhTnTMUN5CiTZTxI6_hS8aqYeZS9sd7FCHsiH4xHy/exec';
+            form.target = 'hidden-frame';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'getPlanDay';
+            form.appendChild(actionInput);
+            
+            const dateInput = document.createElement('input');
+            dateInput.type = 'hidden';
+            dateInput.name = 'date';
+            dateInput.value = selectedDate;
+            form.appendChild(dateInput);
+            
+            document.body.appendChild(form);
+            form.submit();
         }
+
+        // Global handler for getAllPlanDays response
+        window.handleGetAllPlanDaysResponse = function(response) {
+            if (response.status === 'success' && response.data) {
+                populateDateFilter(response.data);
+            } else {
+                console.error('Error loading dates');
+            }
+        };
+
+        // Global handler for getPlanDay response
+        window.handleGetPlanDayResponse = function(response) {
+            if (response.status === 'success') {
+                displayDayPlan(response.data);
+            } else {
+                console.error('Error loading day plan');
+            }
+        };
 
         // Load dates when page loads
         window.onload = loadAllDates;

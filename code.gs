@@ -1,11 +1,6 @@
 function doPost(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   const data = e.parameter;
-
-  if (data.sheet === 'planday') {
-    return ContentService.createTextOutput(JSON.stringify(handlePlanDayEntry(data)))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
   
   if (data.sheet === 'planday') {
     return ContentService.createTextOutput(JSON.stringify(handlePlanDayEntry(data)))
@@ -82,14 +77,22 @@ function doGet(e) {
   }
   
   if (action === 'getAllPlanDays') {
-    return ContentService.createTextOutput(JSON.stringify(getAllPlanDays()))
-      .setMimeType(ContentService.MimeType.JSON);
+    const response = getAllPlanDays();
+    return HtmlService.createHtmlOutput(`
+      <script>
+        window.parent.handleGetAllPlanDaysResponse(${JSON.stringify(response)});
+      </script>
+    `);
   }
   
   if (action === 'getPlanDay') {
     const date = e.parameter.date;
-    return ContentService.createTextOutput(JSON.stringify(getPlanDay(date)))
-      .setMimeType(ContentService.MimeType.JSON);
+    const response = getPlanDay(date);
+    return HtmlService.createHtmlOutput(`
+      <script>
+        window.parent.handleGetPlanDayResponse(${JSON.stringify(response)});
+      </script>
+    `);
   }
   
   // Your existing doGet logic for getting last entry
@@ -97,7 +100,7 @@ function doGet(e) {
 }
 
 function getAllEntries() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const sheet = SpreadsheetApp.getActiveSpreadsvheet().getActiveSheet();
   const lastRow = sheet.getLastRow();
   
   if (lastRow <= 1) {
