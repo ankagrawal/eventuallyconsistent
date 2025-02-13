@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Day Plan</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .nav-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            margin-bottom: 20px;
+        }
+        .nav-link:hover {
+            background-color: #1976D2;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .filter-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-left: 10px;
+            min-width: 200px;
+        }
+        .plan-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .plan-table th, .plan-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .plan-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        .plan-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html" class="nav-link">Daily Progress</a>
+        <a href="history.html" class="nav-link">View History</a>
+        <a href="planday.html" class="nav-link">Plan Day</a>
+    </div>
+
+    <div class="section">
+        <div class="header">
+            <h2>View Day Plan</h2>
+        </div>
+        
+        <div class="filter-section">
+            <label for="dateFilter">Select Date:</label>
+            <select id="dateFilter" onchange="loadDayPlan()">
+                <option value="">Select a date</option>
+                <!-- Date options will be populated by JavaScript -->
+            </select>
+        </div>
+
+        <table class="plan-table">
+            <thead>
+                <tr>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Plan</th>
+                    <th>Project</th>
+                </tr>
+            </thead>
+            <tbody id="planTableBody">
+                <!-- Plan entries will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            
+            try {
+                // If timeStr is already in HH:MM format, return as is
+                if (timeStr.match(/^\d{2}:\d{2}$/)) {
+                    return timeStr;
+                }
+                
+                // If timeStr is a full date string, convert to HH:MM
+                const date = new Date(timeStr);
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
+            } catch (error) {
+                console.error('Error formatting time:', error);
+                return timeStr;
+            }
+        }
+
+        function populateDateFilter(entries) {
+            const dateFilter = document.getElementById('dateFilter');
+            const dates = [...new Set(entries.map(entry => entry.date))];
+            dates.sort((a, b) => new Date(b) - new Date(a));
+            
+            dateFilter.innerHTML = '<option value="">Select a date</option>';
+            dates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                dateFilter.appendChild(option);
+            });
+        }
+
+        function displayDayPlan(entries) {
+            const tableBody = document.getElementById('planTableBody');
+            tableBody.innerHTML = '';
+
+            if (!entries || entries.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="no-data">No plans found for the selected date.</td>
+                    </tr>`;
+                return;
+            }
+
+            // Sort entries by start time
+            entries.sort((a, b) => {
+                const timeA = formatTime(a.startTime);
+                const timeB = formatTime(b.startTime);
+                return timeA.localeCompare(timeB);
+            });
+
+            entries.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatTime(entry.startTime)}</td>
+                    <td>${formatTime(entry.endTime)}</td>
+                    <td>${entry.plan || ''}</td>
+                    <td>${entry.project || ''}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function loadAllDates() {
+            try {
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbx0eo1dUH8q0YlPmFxueENXBpyXgFRkJv5q2ojAn2IOrsHzcBa6eN81IA7Z--p8no67/exec';
+                const response = await fetch(`${scriptURL}?action=getAllPlanDays`);
+                const jsonData = await response.json();
+
+                if (jsonData.status === 'success' && jsonData.data) {
+                    populateDateFilter(jsonData.data);
+                }
+            } catch (error) {
+                console.error('Error loading dates:', error);
+                alert('Error loading dates. Please try again.');
+            }
+        }
+
+        async function loadDayPlan() {
+            const selectedDate = document.getElementById('dateFilter').value;
+            if (!selectedDate) {
+                displayDayPlan([]);
+                return;
+            }
+
+            try {
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbx0eo1dUH8q0YlPmFxueENXBpyXgFRkJv5q2ojAn2IOrsHzcBa6eN81IA7Z--p8no67/exec';
+                const response = await fetch(`${scriptURL}?action=getPlanDay&date=${selectedDate}`);
+                const jsonData = await response.json();
+
+                if (jsonData.status === 'success') {
+                    displayDayPlan(jsonData.data);
+                } else {
+                    throw new Error('Failed to load day plan');
+                }
+            } catch (error) {
+                console.error('Error loading day plan:', error);
+                alert('Error loading day plan. Please try again.');
+            }
+        }
+
+        // Load dates when page loads
+        window.onload = loadAllDates;
+    </script>
+</body>
+</html> 

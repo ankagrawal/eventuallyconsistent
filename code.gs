@@ -81,6 +81,17 @@ function doGet(e) {
     return getAllEntries();
   }
   
+  if (action === 'getAllPlanDays') {
+    return ContentService.createTextOutput(JSON.stringify(getAllPlanDays()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  if (action === 'getPlanDay') {
+    const date = e.parameter.date;
+    return ContentService.createTextOutput(JSON.stringify(getPlanDay(date)))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
   // Your existing doGet logic for getting last entry
   return getLastEntry();
 }
@@ -130,5 +141,50 @@ function handlePlanDayEntry(data) {
   return {
     status: 'success',
     message: 'Plan day entry added successfully'
+  };
+}
+
+function getAllPlanDays() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('PlanDay');
+  const data = sheet.getDataRange().getValues();
+  
+  // Remove header row and transform data
+  const entries = data.slice(1).map(row => ({
+    date: Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+    startTime: row[1],
+    endTime: row[2],
+    plan: row[3],
+    project: row[4]
+  }));
+  
+  return {
+    status: 'success',
+    data: entries
+  };
+}
+
+function getPlanDay(date) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('PlanDay');
+  const data = sheet.getDataRange().getValues();
+  
+  // Remove header row and filter by date
+  const entries = data.slice(1)
+    .filter(row => {
+      const rowDate = Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+      return rowDate === date;
+    })
+    .map(row => ({
+      date: Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+      startTime: row[1],
+      endTime: row[2],
+      plan: row[3],
+      project: row[4]
+    }));
+  
+  return {
+    status: 'success',
+    data: entries
   };
 }
