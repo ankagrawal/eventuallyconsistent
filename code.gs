@@ -2,6 +2,11 @@ function doPost(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   const data = e.parameter;
   
+  if (data.sheet === 'planday') {
+    return ContentService.createTextOutput(JSON.stringify(handlePlanDayEntry(data)))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
   if (data.isEdit === 'true') {
     // Update the last row instead of adding a new one
     const lastRow = sheet.getLastRow();
@@ -105,3 +110,33 @@ function getAllEntries() {
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
+function handlePlanDayEntry(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('PlanDay'); // Make sure this matches your sheet name
+  
+  sheet.appendRow([
+    data.timeWindow,
+    data.plan,
+    data.project,
+    data.date,
+    data.timeDuration
+  ]);
+  
+  return {
+    status: 'success',
+    message: 'Plan day entry added successfully'
+  };
+}
+
+// Modify your existing doPost function to handle planday entries
+function doPost(e) {
+  const data = e.parameter;
+  
+  if (data.sheet === 'planday') {
+    return ContentService.createTextOutput(JSON.stringify(handlePlanDayEntry(data)))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  // Your existing doPost logic for the progress tracker
+  // ...
+}

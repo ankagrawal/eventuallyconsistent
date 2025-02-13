@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plan Day Entry</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .nav-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            margin-bottom: 20px;
+        }
+        .nav-link:hover {
+            background-color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html" class="nav-link">Daily Progress</a>
+        <a href="history.html" class="nav-link">View History</a>
+    </div>
+
+    <div class="section">
+        <h2>New Plan Day Entry</h2>
+        <form id="plandayForm" onsubmit="submitForm(event)">
+            <div class="form-group">
+                <label for="timeWindow">Time Window:</label>
+                <select id="timeWindow" name="timeWindow" required>
+                    <option value="">Select Time Window</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Afternoon">Afternoon</option>
+                    <option value="Evening">Evening</option>
+                    <option value="Night">Night</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="plan">Plan:</label>
+                <textarea id="plan" name="plan" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="project">Project:</label>
+                <input type="text" id="project" name="project" required>
+            </div>
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="timeDuration">Time Duration (hours):</label>
+                <input type="number" id="timeDuration" name="timeDuration" step="0.5" min="0" required>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        // Function to format date as YYYY-MM-DD
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Function to populate today's date
+        function setTodayDate() {
+            const today = new Date();
+            document.getElementById('date').value = formatDate(today);
+        }
+
+        // Call setTodayDate when the page loads
+        window.onload = setTodayDate;
+
+        async function submitForm(e) {
+            e.preventDefault();
+            
+            const form = document.getElementById('plandayForm');
+            const formData = new FormData(form);
+            formData.append('sheet', 'planday'); // Add sheet identifier
+            
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxDZ_qIZQWgcN824n05l5hBSdGjovV6tBr8MUuqGTXCfvTgXwLlyuckZu96B2UWH1xX/exec';
+
+            try {
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert('Success! Plan day entry submitted successfully');
+                    form.reset();
+                    setTodayDate(); // Reset date to today
+                } else {
+                    throw new Error('Submission failed');
+                }
+            } catch (error) {
+                console.error('Error!', error.message);
+                alert('Error! Something went wrong');
+            }
+        }
+    </script>
+</body>
+</html> 
