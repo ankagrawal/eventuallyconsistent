@@ -83,122 +83,67 @@
         .delete-row:hover {
             background-color: #d32f2f;
         }
+        iframe {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="navigation">
         <a href="index.html" class="nav-link">Daily Progress</a>
         <a href="history.html" class="nav-link">View History</a>
+        <a href="viewplan.html" class="nav-link">View Plans</a>
     </div>
 
     <div class="section">
         <h2>Plan Day Entry</h2>
-        <div class="form-group">
-            <label for="date">Date:</label>
-            <input type="date" id="date" name="date" required>
-        </div>
-        
-        <table class="plan-table" id="planTable">
-            <thead>
-                <tr>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Plan</th>
-                    <th>Project</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="planTableBody">
-                <!-- Rows will be added here -->
-            </tbody>
-        </table>
-        
-        <button type="button" onclick="addRow()">Add Time Slot</button>
-        <button type="button" onclick="submitForm()">Submit All</button>
+        <form action="https://script.google.com/macros/s/AKfycbwihxTi4YnJu7Di3hnwrRDHbb4eKpv5dz4vrDKkMFrkxZL62xKZB1NiD1dw7YSZTI8I/exec" method="POST" target="hidden-frame">
+            <input type="hidden" name="sheet" value="planday">
+            
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="startTime">Start Time:</label>
+                <input type="time" id="startTime" name="startTime" required>
+            </div>
+
+            <div class="form-group">
+                <label for="endTime">End Time:</label>
+                <input type="time" id="endTime" name="endTime" required>
+            </div>
+
+            <div class="form-group">
+                <label for="plan">Plan:</label>
+                <textarea id="plan" name="plan" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="project">Project:</label>
+                <input type="text" id="project" name="project" required>
+            </div>
+
+            <button type="submit">Submit</button>
+            <button type="reset">Clear</button>
+        </form>
     </div>
 
+    <iframe name="hidden-frame"></iframe>
+
     <script>
-        function formatDate(date) {
-            return date.toISOString().split('T')[0];
-        }
+        // Minimal JavaScript just to set today's date and handle form submission response
+        document.getElementById('date').valueAsDate = new Date();
 
-        function setTodayDate() {
-            const today = new Date();
-            document.getElementById('date').value = formatDate(today);
-        }
-
-        function addRow() {
-            const tbody = document.getElementById('planTableBody');
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><input type="time" class="start-time" required></td>
-                <td><input type="time" class="end-time" required></td>
-                <td><textarea class="plan" rows="2" required></textarea></td>
-                <td><input type="text" class="project" required></td>
-                <td><button type="button" class="delete-row" onclick="deleteRow(this)">Delete</button></td>
-            `;
-            tbody.appendChild(row);
-        }
-
-        function deleteRow(button) {
-            const row = button.parentNode.parentNode;
-            row.parentNode.removeChild(row);
-        }
-
-        async function submitForm() {
-            const date = document.getElementById('date').value;
-            const rows = document.getElementById('planTableBody').getElementsByTagName('tr');
-            
-            if (rows.length === 0) {
-                alert('Please add at least one time slot');
-                return;
-            }
-
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbw_XNmc81nuJt4IUhfKxrDBDoOJGZuICO-iUrq34WtDogydAYR52_TMzQqmxRkoRBjF/exec';
-            let successCount = 0;
-            let failCount = 0;
-
-            for (const row of rows) {
-                const formData = new FormData();
-                formData.append('sheet', 'planday');
-                formData.append('date', date);
-                formData.append('startTime', row.querySelector('.start-time').value);
-                formData.append('endTime', row.querySelector('.end-time').value);
-                formData.append('plan', row.querySelector('.plan').value);
-                formData.append('project', row.querySelector('.project').value);
-
-                try {
-                    const response = await fetch(scriptURL, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        successCount++;
-                    } else {
-                        failCount++;
-                    }
-                } catch (error) {
-                    console.error('Error!', error.message);
-                    failCount++;
-                }
-            }
-
-            if (failCount === 0) {
-                alert(`Success! All ${successCount} entries submitted successfully`);
-                // Clear the table and reset date to today
-                document.getElementById('planTableBody').innerHTML = '';
-                setTodayDate();
+        window.handleResponse = function(response) {
+            if (response.status === 'success') {
+                alert('Plan submitted successfully!');
+                document.querySelector('form').reset();
+                document.getElementById('date').valueAsDate = new Date();
             } else {
-                alert(`Completed with ${successCount} successful and ${failCount} failed submissions`);
+                alert('Error submitting plan. Please try again.');
             }
-        }
-
-        // Initialize with today's date and one empty row
-        window.onload = function() {
-            setTodayDate();
-            addRow();
         };
     </script>
 </body>
