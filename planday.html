@@ -5,7 +5,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: 20px auto;
             padding: 20px;
         }
@@ -30,6 +30,7 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            margin-right: 10px;
         }
         button:hover {
             background-color: #45a049;
@@ -57,6 +58,31 @@
         .nav-link:hover {
             background-color: #1976D2;
         }
+        .plan-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .plan-table th, .plan-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .plan-table th {
+            background-color: #f5f5f5;
+            text-align: left;
+        }
+        .plan-table input, .plan-table textarea {
+            width: 100%;
+            padding: 4px;
+            margin: 0;
+            border: 1px solid #ddd;
+        }
+        .delete-row {
+            background-color: #f44336;
+        }
+        .delete-row:hover {
+            background-color: #d32f2f;
+        }
     </style>
 </head>
 <body>
@@ -66,81 +92,114 @@
     </div>
 
     <div class="section">
-        <h2>New Plan Day Entry</h2>
-        <form id="plandayForm" onsubmit="submitForm(event)">
-            <div class="form-group">
-                <label for="timeWindow">Time Window:</label>
-                <select id="timeWindow" name="timeWindow" required>
-                    <option value="">Select Time Window</option>
-                    <option value="Morning">Morning</option>
-                    <option value="Afternoon">Afternoon</option>
-                    <option value="Evening">Evening</option>
-                    <option value="Night">Night</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="plan">Plan:</label>
-                <textarea id="plan" name="plan" rows="3" required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="project">Project:</label>
-                <input type="text" id="project" name="project" required>
-            </div>
-            <div class="form-group">
-                <label for="date">Date:</label>
-                <input type="date" id="date" name="date" required>
-            </div>
-            <div class="form-group">
-                <label for="timeDuration">Time Duration (hours):</label>
-                <input type="number" id="timeDuration" name="timeDuration" step="0.5" min="0" required>
-            </div>
-            <button type="submit">Submit</button>
-        </form>
+        <h2>Plan Day Entry</h2>
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+        
+        <table class="plan-table" id="planTable">
+            <thead>
+                <tr>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Plan</th>
+                    <th>Project</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="planTableBody">
+                <!-- Rows will be added here -->
+            </tbody>
+        </table>
+        
+        <button type="button" onclick="addRow()">Add Time Slot</button>
+        <button type="button" onclick="submitForm()">Submit All</button>
     </div>
 
     <script>
-        // Function to format date as YYYY-MM-DD
         function formatDate(date) {
             return date.toISOString().split('T')[0];
         }
 
-        // Function to populate today's date
         function setTodayDate() {
             const today = new Date();
             document.getElementById('date').value = formatDate(today);
         }
 
-        // Call setTodayDate when the page loads
-        window.onload = setTodayDate;
+        function addRow() {
+            const tbody = document.getElementById('planTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="time" class="start-time" required></td>
+                <td><input type="time" class="end-time" required></td>
+                <td><textarea class="plan" rows="2" required></textarea></td>
+                <td><input type="text" class="project" required></td>
+                <td><button type="button" class="delete-row" onclick="deleteRow(this)">Delete</button></td>
+            `;
+            tbody.appendChild(row);
+        }
 
-        async function submitForm(e) {
-            e.preventDefault();
-            
-            const form = document.getElementById('plandayForm');
-            const formData = new FormData(form);
-            formData.append('sheet', 'planday'); // Add sheet identifier
-            
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxDZ_qIZQWgcN824n05l5hBSdGjovV6tBr8MUuqGTXCfvTgXwLlyuckZu96B2UWH1xX/exec';
+        function deleteRow(button) {
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
 
-            try {
-                const response = await fetch(scriptURL, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                if (data.status === 'success') {
-                    alert('Success! Plan day entry submitted successfully');
-                    form.reset();
-                    setTodayDate(); // Reset date to today
-                } else {
-                    throw new Error('Submission failed');
+        async function submitForm() {
+            const date = document.getElementById('date').value;
+            const rows = document.getElementById('planTableBody').getElementsByTagName('tr');
+            
+            if (rows.length === 0) {
+                alert('Please add at least one time slot');
+                return;
+            }
+
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzlJr4jeC6nCr1hyDwPLLRZ3a9ml1Vw3fgTerjUVixh8HDP5B6BKTYg3MwZUMyjvhS4/exec';
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const row of rows) {
+                const formData = new FormData();
+                formData.append('sheet', 'planday');
+                formData.append('date', date);
+                formData.append('startTime', row.querySelector('.start-time').value);
+                formData.append('endTime', row.querySelector('.end-time').value);
+                formData.append('plan', row.querySelector('.plan').value);
+                formData.append('project', row.querySelector('.project').value);
+
+                try {
+                    const response = await fetch(scriptURL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch (error) {
+                    console.error('Error!', error.message);
+                    failCount++;
                 }
-            } catch (error) {
-                console.error('Error!', error.message);
-                alert('Error! Something went wrong');
+            }
+
+            if (failCount === 0) {
+                alert(`Success! All ${successCount} entries submitted successfully`);
+                // Clear the table and reset date to today
+                document.getElementById('planTableBody').innerHTML = '';
+                setTodayDate();
+            } else {
+                alert(`Completed with ${successCount} successful and ${failCount} failed submissions`);
             }
         }
+
+        // Initialize with today's date and one empty row
+        window.onload = function() {
+            setTodayDate();
+            addRow();
+        };
     </script>
 </body>
 </html> 
