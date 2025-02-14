@@ -96,6 +96,28 @@
         .project-input {
             width: 150px;
         }
+        .notes-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .notes-section h3 {
+            margin-top: 0;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .scratch-pad {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            resize: vertical;
+            background-color: white;
+        }
     </style>
 </head>
 <body>
@@ -132,6 +154,11 @@
             <button onclick="submitAllPlans()">Submit All</button>
             <button onclick="clearAll()" class="delete-btn">Clear All</button>
         </div>
+    </div>
+
+    <div class="notes-section">
+        <h3>Scratch Pad</h3>
+        <textarea class="scratch-pad" placeholder="Use this space for temporary notes. Notes will be cleared when the page is refreshed."></textarea>
     </div>
 
     <script>
